@@ -14,7 +14,7 @@ const app = {
   words: [],
   filter: null,      // いま選んでいる札の名前（null＝すべて）
   story: null,       // 開いている物語
-  view: { vertical: true, fs: null, wakachi: true, marks: {}, slit: false, ui: true },
+  view: { vertical: true, fs: null, wakachi: true, marks: {}, slit: false, ui: true, motion: true },
   cur: 0,            // 読む行（行の通し番号）
   audio: null,       // 範読の音声（audio/*.wav）。音声のある物語だけ
   reading: false,    // 範読の途中（読んでいる行に色をつける）
@@ -53,7 +53,7 @@ function loadPref() {
 }
 function savePref() {
   try {
-    localStorage.setItem(PREF_KEY, JSON.stringify({ vertical: app.view.vertical, wakachi: app.view.wakachi }));
+    localStorage.setItem(PREF_KEY, JSON.stringify({ vertical: app.view.vertical, wakachi: app.view.wakachi, motion: app.view.motion }));
   } catch (e) { /* なにもしない */ }
 }
 
@@ -71,6 +71,7 @@ async function load() {
     return;
   }
   loadPref();
+  syncMotion();
   renderChips();
   renderShelf();
   if (location.hash.startsWith('#s')) openStory(location.hash.slice(1));
@@ -107,9 +108,77 @@ function renderShelf() {
     b.style.setProperty('--c', wordColor(app.filter || s.words[0]));
     b.title = `${s.title}（${charCount(s)}字）\nねらい：${s.aim || ''}\n札：${s.words.join('・')}`;
     b.innerHTML = `<span class="no">${kansuji(s.no)}</span><span class="ttl">${esc(s.title)}</span><span class="band"></span><span class="kind">${esc(s.type)}</span>`;
-    b.onclick = () => openStory(s.id);
+    b.onclick = () => playIntro(b, s);
     shelf.appendChild(b);
   });
+}
+
+function syncMotion() {
+  $('btnMotion').setAttribute('aria-pressed', String(app.view.motion));
+  $('btnMotion').textContent = app.view.motion ? '動き：あり' : '動き：なし';
+}
+
+// ---------- 本をひらく動き：本を棚からとる → 光 → 表紙がひらく → 本文がふわっと浮かぶ ----------
+let intro = null;   // 動いている最中の { el, anims, timers }
+
+function motionOk() {
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return app.view.motion && !reduce && !!Element.prototype.animate;
+}
+
+function finishIntro() {
+  if (!intro) return;
+  intro.timers.forEach(clearTimeout);
+  intro.anims.forEach((a) => { try { a.cancel(); } catch (e) { /* なにもしない */ } });
+  intro.el.remove();
+  intro = null;
+}
+
+function playIntro(btn, s) {
+  if (!motionOk() || intro) { openStory(s.id); return; }
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const bh = Math.min(vh * 0.62, 460), bw = bh * 0.76;
+  const r = btn.getBoundingClientRect();
+  const color = getComputedStyle(btn).getPropertyValue('--c') || '#2E6B3F';
+  const el = document.createElement('div');
+  el.className = 'intro';
+  el.style.setProperty('--bw', bw + 'px');
+  el.style.setProperty('--bh', bh + 'px');
+  el.style.setProperty('--c', color);
+  el.innerHTML = '<div class="glow"></div><div class="book3d"><div class="back"></div><div class="blk"></div>' +
+    '<div class="cover"><div class="face front"><span class="no">' + kansuji(s.no) + '</span><span class="ttl">' + esc(s.title) + '</span></div><div class="face inside"></div></div></div>';
+  document.body.appendChild(el);
+  const book = el.querySelector('.book3d'), cover = el.querySelector('.cover'), glow = el.querySelector('.glow');
+  intro = { el, anims: [], timers: [] };
+  const go = (node, frames, opt) => { const a = node.animate(frames, Object.assign({ fill: 'both' }, opt)); intro.anims.push(a); return a; };
+  const later = (ms, fn) => intro.timers.push(setTimeout(fn, ms));
+
+  // 1. 本をとる：棚の本の位置から、画面の中央へ
+  const dx = r.left + r.width / 2 - vw / 2, dy = r.top + r.height / 2 - vh / 2;
+  go(el, [{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
+  go(book, [
+    { transform: `translate(${dx}px, ${dy}px) scale(${r.width / bw}, ${r.height / bh}) rotateY(0deg)` },
+    { transform: `translate(0px, ${-bh * 0.04}px) scale(1.04) rotateY(-14deg)`, offset: 0.7 },
+    { transform: 'translate(0px, 0px) scale(1) rotateY(-14deg)' },
+  ], { duration: 800, easing: 'cubic-bezier(.25,.8,.3,1)' });
+  // 2. 光がふくらむ
+  go(glow, [{ opacity: 0, transform: 'scale(.2)' }, { opacity: .9, transform: 'scale(1.6)' }], { duration: 900, delay: 650, easing: 'ease-out' });
+  // 3. 表紙がひらく
+  go(cover, [{ transform: 'rotateY(0deg)' }, { transform: 'rotateY(-172deg)' }], { duration: 1000, delay: 1050, easing: 'cubic-bezier(.4,.1,.2,1)' });
+  go(book, [{ transform: 'translate(0,0) scale(1) rotateY(-14deg)' }, { transform: `translate(${bw / 2}px, 0) scale(1.05) rotateY(0deg)` }], { duration: 1000, delay: 1050, easing: 'ease-in-out' });
+  go(glow, [{ opacity: .9, transform: 'scale(1.6)' }, { opacity: 1, transform: 'scale(4.2)' }], { duration: 900, delay: 1500, easing: 'ease-in' });
+  // 4. 光のなかで本文を出し、光がやわらぐ。本文はふわっと浮かぶ
+  later(2250, () => {
+    openStory(s.id);
+    const page = $('page');
+    page.classList.add('rise');
+    page.addEventListener('animationend', () => page.classList.remove('rise'), { once: true });
+    go(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 900, easing: 'ease-out' });
+    go(glow, [{ opacity: 1 }, { opacity: 0 }], { duration: 700 });
+    later(950, finishIntro);
+  });
+  // 途中で押したら、すぐ本文へ
+  el.onclick = () => { if (!app.story) { finishIntro(); openStory(s.id); } };
 }
 
 // ---------- 本文 ----------
@@ -318,6 +387,7 @@ function rewindAudio() {
 
 // ---------- ボタンとキー ----------
 function bind() {
+  $('btnMotion').onclick = () => { app.view.motion = !app.view.motion; savePref(); syncMotion(); };
   $('btnPlay').onclick = togglePlay;
   $('btnRewind').onclick = rewindAudio;
   $('btnBack').onclick = closeStory;

@@ -130,6 +130,29 @@ body { font-family: var(--font-ui); color: var(--ink); background: var(--cream);
 .page.slit .ln.cur { opacity: 1; box-shadow: 0 0 0 .12em #F9A825; }
 .page.slit .ttl { opacity: .3; }
 
+/* ---------- 本をひらく動き（本だな→本文） ----------
+   画像を使うときは、:root に --cover-img: url(../img/cover.png) のように入れると、表紙の絵にかわる */
+.forest-head .motion { position: absolute; right: 24px; top: 18px; z-index: 2; }
+.intro { position: fixed; inset: 0; z-index: 50; perspective: 1600px; overflow: hidden; cursor: pointer;
+  background: radial-gradient(ellipse at center, rgba(20,40,28,.78), rgba(8,18,12,.92)); }
+.intro .glow { position: absolute; left: 50%; top: 50%; width: 60vmin; height: 60vmin; margin: -30vmin 0 0 -30vmin; border-radius: 50%;
+  background: radial-gradient(circle, #fffdf0 0%, #fff3b8 28%, rgba(255,230,140,.55) 52%, rgba(255,230,140,0) 72%); opacity: 0; transform: scale(.2); }
+.intro .book3d { position: absolute; left: 50%; top: 50%; width: var(--bw); height: var(--bh); margin: calc(var(--bh) / -2) 0 0 calc(var(--bw) / -2);
+  transform-style: preserve-3d; transform-origin: center; }
+.intro .blk { position: absolute; inset: 0; border-radius: 4px 10px 10px 4px;
+  background: repeating-linear-gradient(0deg, #fffdf6 0 3px, #efe6cf 3px 4px); box-shadow: 0 0 0 2px rgba(0,0,0,.08), 6px 8px 22px rgba(0,0,0,.45); }
+.intro .back { position: absolute; inset: 0; border-radius: 4px 10px 10px 4px; background: var(--c, #2E6B3F); transform: translateZ(-14px); }
+.intro .cover { position: absolute; inset: 0; transform-origin: left center; transform-style: preserve-3d; }
+.intro .face { position: absolute; inset: 0; border-radius: 4px 10px 10px 4px; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; padding: 8% 0; }
+.intro .front { background: linear-gradient(90deg, rgba(0,0,0,.28), rgba(255,255,255,.2) 12%, rgba(0,0,0,0) 40%, rgba(0,0,0,.18)), var(--cover-img, none) center/cover, var(--c, #2E6B3F);
+  color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.5); box-shadow: inset 0 0 0 6px rgba(255,255,255,.18), 4px 6px 18px rgba(0,0,0,.4); }
+.intro .front .no { font: 700 calc(var(--bw) * .09)/1 var(--font-text); background: rgba(255,255,255,.92); color: var(--ink); text-shadow: none; border-radius: 6px; padding: .5em .45em; writing-mode: vertical-rl; }
+.intro .front .ttl { flex: 1; writing-mode: vertical-rl; font: 700 calc(var(--bw) * .1)/1.35 var(--font-text); letter-spacing: .05em; margin-top: 1em; }
+.intro .inside { transform: rotateY(180deg); background: linear-gradient(90deg, #efe6cf, #fffdf6 30%); }
+.page.rise { animation: pageRise 1.2s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes pageRise { from { opacity: 0; transform: translateY(22px) scale(.985); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
+.btn.motion[aria-pressed="false"] { opacity: .75; }
+
 /* 範読：いま読んでいる行に色がつく */
 .page.reading .ln.cur { background: #FFF1A8; box-shadow: 0 0 0 .1em #FFF1A8; }
 .page.reading.mk-kaiwa .ln.kaiwa.cur { background: #FFE27A; box-shadow: 0 0 0 .1em #FFE27A; }
