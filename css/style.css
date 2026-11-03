@@ -215,3 +215,53 @@ body { font-family: var(--font-ui); color: var(--ink); background: var(--cream);
   .room, .chips { padding-left: 16px; padding-right: 16px; }
   .book { width: 76px; height: 240px; }
 }
+
+/* ---------- 印刷の画面（プリント・ワークシートをつくる） ---------- */
+#printer { background: linear-gradient(#EAF5E2, #F7F1E3); display: flex; flex-direction: column; }
+.pr-head { display: flex; align-items: center; gap: 16px; padding: 10px 18px; background: linear-gradient(var(--forest), var(--forest-2)); color: #fff; }
+.pr-head h2 { flex: 1; font: 700 24px/1.2 var(--font-text); letter-spacing: .06em; }
+.btn.go { background: #FFF1A8; border-color: #C9A227; box-shadow: 0 4px 0 #C9A227; }
+.pr-body { flex: 1; min-height: 0; display: flex; }
+.pr-opts { width: 340px; flex: none; overflow: auto; padding: 14px 16px 24px; background: rgba(255,255,255,.7); border-right: 3px solid var(--wood-light); font-size: 16px; }
+.pr-opts h3 { font: 700 16px/1.2 var(--font-ui); margin: 14px 0 6px; padding-left: 8px; border-left: 8px solid var(--forest-2); }
+.pr-opts h3:first-child { margin-top: 0; }
+.pr-opts .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 4px; }
+.pr-opts .btn { font-size: 15px; min-height: 40px; padding: 8px 10px; }
+.pr-opts input[type=text] { width: 100%; font: 700 17px var(--font-ui); padding: 8px; border: 2px solid var(--btn-edge); border-radius: 8px; }
+.pr-opts input[type=number] { width: 4.5em; font: 700 17px var(--font-ui); padding: 6px; border: 2px solid var(--btn-edge); border-radius: 8px; }
+.pr-opts select { font: 700 16px var(--font-ui); padding: 7px; border: 2px solid var(--btn-edge); border-radius: 8px; }
+.pr-opts label.ck { display: flex; align-items: center; gap: 6px; min-height: 34px; cursor: pointer; }
+.pr-opts label.ck input { width: 20px; height: 20px; }
+.pr-opts .note { font-size: 13px; color: #6b5a47; }
+.pr-stage { flex: 1; min-width: 0; overflow: auto; padding: 18px; display: flex; justify-content: center; align-items: flex-start; }
+.pr-wrap { position: relative; flex: none; }
+.pr-scale { transform-origin: 0 0; transform: scale(var(--s, .6)); }
+
+/* 用紙（A4）。mm で組む。中身の本文は #page と同じしるしの色を使う */
+.sheet { background: #fff; color: #222; box-shadow: 0 6px 24px rgba(60,40,20,.35); display: flex; flex-direction: column; padding: 11mm 12mm; font-family: var(--font-text); font-weight: 600; }
+.sheet.portrait { width: 210mm; height: 297mm; }
+.sheet.landscape { width: 297mm; height: 210mm; }
+.sheet .s-top { display: flex; justify-content: flex-end; gap: 8mm; font: 400 10.5pt var(--font-ui); margin-bottom: 2mm; }
+.sheet .s-top .u { display: inline-block; width: 38mm; border-bottom: .3mm solid #666; }
+.sheet h1 { font-size: 19pt; text-align: center; margin-bottom: 3mm; font-weight: 700; letter-spacing: .06em; }
+.sheet .s-text { flex: 1; min-height: 0; position: relative; }
+.sheet .s-text .page { position: absolute; inset: 0; padding: 0; overflow: hidden; }
+.sheet .s-text .ln { cursor: default; transition: none; }
+.sheet .seiri { margin-top: 3mm; font-family: var(--font-ui); font-weight: 700; border-top: .3mm dashed #999; padding-top: 2.5mm; display: flex; flex-wrap: wrap; gap: 2mm 10mm; }
+.sheet .srow { display: flex; align-items: center; gap: 2mm; font-size: 13pt; }
+.sheet .srow .box { display: inline-block; width: 9mm; height: 9mm; border: .4mm solid #444; background: #fff; }
+.sheet .srow .boxes { display: inline-flex; gap: 0; }
+.sheet .srow .box + .box { margin-left: -.4mm; }
+/* 作業用の印 */
+.sheet .page.dots .ln.ji::before, .sheet .page.dots .ln.ji::after { content: "・"; color: #c0392b; }
+.sheet .page .kuten { color: #c0392b; }
+
+@media print {
+  html, body { height: auto; overflow: visible; background: #fff; }
+  body.printing #shelf, body.printing #reader, body.printing .pr-head, body.printing .pr-opts, body.printing .intro { display: none !important; }
+  body.printing #printer { position: static; display: block; background: #fff; }
+  body.printing .pr-body, body.printing .pr-stage { display: block; padding: 0; overflow: visible; }
+  body.printing .pr-wrap { width: auto !important; height: auto !important; }
+  body.printing .pr-scale { transform: none !important; }
+  body.printing .sheet { box-shadow: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; break-after: avoid; }
+}

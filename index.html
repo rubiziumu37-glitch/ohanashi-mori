@@ -56,6 +56,9 @@
       <div class="group" aria-label="読む行">
         <button class="btn tog" id="btnSlit" title="読む行だけ見せる（S）">読む行だけ</button>
       </div>
+      <div class="group" aria-label="印刷">
+        <button class="btn" id="btnPrint" title="プリント（ワークシート）をつくって印刷する（P）">🖨 印刷</button>
+      </div>
       <div class="group" id="grpAudio" aria-label="範読" hidden>
         <button class="btn play" id="btnPlay" title="範読をはじめる・とめる（スペース）">▶ 範読</button>
         <button class="btn" id="btnRewind" title="はじめにもどす">⏮</button>
@@ -63,6 +66,19 @@
     </div>
   </div>
   <button class="btn show-ui" id="btnShow" hidden title="ボタンを出す（H）">ボタン</button>
+</section>
+
+<!-- 印刷の画面（プリント・ワークシートをつくる）：左で形をえらび、右で仕上がりを見る -->
+<section id="printer" class="screen" hidden>
+  <header class="pr-head">
+    <button class="btn" id="prBack">← 本文にもどる</button>
+    <h2>プリントをつくる</h2>
+    <button class="btn go" id="prGo" title="ブラウザの印刷の画面をひらく（PDFに保存もできる）">🖨 印刷する</button>
+  </header>
+  <div class="pr-body">
+    <aside class="pr-opts" id="prOpts"></aside>
+    <div class="pr-stage" id="prStage"><div class="pr-wrap" id="prWrap"><div class="pr-scale" id="prScale"><div class="sheet" id="sheet"></div></div></div></div>
+  </div>
 </section>
 
 <script src="js/app.js"></script>

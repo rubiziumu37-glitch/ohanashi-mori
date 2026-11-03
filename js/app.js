@@ -223,9 +223,9 @@ function closeStory() {
   $('shelf').hidden = false;
 }
 
-function lineHtml(t) {
+function lineHtml(t, wakachi = app.view.wakachi) {
   let h = esc(t);
-  if (!app.view.wakachi) h = h.replace(/　/g, '');
+  if (!wakachi) h = h.replace(/　/g, '');
   // 入れ子のしるし（[心:[音:にっこり]　わらいました]）は内側から順に span にする
   while (MARK_TAG.test(h)) h = h.replace(MARK_TAG, (m, k, w) => `<span class="${MARK_CLASS[k]}">${w}</span>`);
   return h;
@@ -397,8 +397,155 @@ function rewindAudio() {
   applyView();
 }
 
+// ---------- 印刷（プリント・ワークシートをつくる） ----------
+// 左で形をえらび、右に A4 の仕上がりを出す。印刷はブラウザの印刷（PDFに保存もできる）。
+const SEIRI_LABEL = { 登場人物: 'だれ', 時間: 'いつ', 場所: 'どこ', 心情: 'きもち' };   // 整理欄の見出し（ほかの札は札の名前）
+const PR_MARKS = [['hito', '登場人物'], ['kaiwa', '会話文'], ['toki', '時間'], ['basho', '場所'], ['oto', 'オノマトペ'], ['kokoro', '心情']];
+const MM = 96 / 25.4;   // 1mm のピクセル数
+let pr = null;          // 印刷の設定（開くたびに、いまの本文の見せ方から作る）
+
+function openPrinter() {
+  const s = app.story;
+  if (!s) return;
+  const sw = s.words.filter((w) => SEIRI_LABEL[w]);
+  pr = {
+    title: s.title,
+    landscape: true, vertical: app.view.vertical, wakachi: app.view.wakachi,
+    fs: 'auto', marks: Object.assign({}, app.view.marks), dots: false, kuten: false,
+    name: true, date: true,
+    seiriOn: false, seiri: {}, boxes: 5,
+  };
+  sw.forEach((w) => { pr.seiri[w] = true; });
+  $('reader').hidden = true;
+  $('printer').hidden = false;
+  buildPrintOpts();
+  renderSheet();
+}
+
+function closePrinter() {
+  $('printer').hidden = true;
+  $('reader').hidden = false;
+  pr = null;
+  fitText();
+}
+
+function buildPrintOpts() {
+  const s = app.story;
+  const box = $('prOpts');
+  const tog = (k, v, text) => `<button class="btn tog" data-k="${k}" data-v="${v}" aria-pressed="${String(pr[k] === v)}">${text}</button>`;
+  const ck = (k, text) => `<label class="ck"><input type="checkbox" data-ck="${k}" ${pr[k] ? 'checked' : ''}>${text}</label>`;
+  const seiriWords = s.words.map((w) => `<label class="ck"><input type="checkbox" data-seiri="${esc(w)}" ${pr.seiri[w] ? 'checked' : ''}>${SEIRI_LABEL[w] ? `「${esc(SEIRI_LABEL[w])}」（${esc(w)}）` : esc(w)}</label>`).join('');
+  box.innerHTML = `
+    <h3>題名</h3>
+    <div class="row"><input type="text" id="prTitle" value="${esc(pr.title)}"></div>
+    <h3>用紙（A4）</h3>
+    <div class="row">${tog('landscape', true, '横')}${tog('landscape', false, '縦')}</div>
+    <h3>書き方</h3>
+    <div class="row">${tog('vertical', true, '縦書き')}${tog('vertical', false, '横書き')}</div>
+    <div class="row">${ck('wakachi', '分かち書き（言葉の区切りをあける）')}</div>
+    <h3>文字の大きさ</h3>
+    <div class="row"><select id="prFs">
+      ${['auto', 14, 16, 18, 20, 24, 28].map((v) => `<option value="${v}" ${String(pr.fs) === String(v) ? 'selected' : ''}>${v === 'auto' ? '自動（用紙にぴったり）' : v + ' pt'}</option>`).join('')}
+    </select></div>
+    <h3>しるし（色）</h3>
+    <div class="row">${PR_MARKS.map(([m, n]) => `<button class="btn tog mk ${m}" data-mark="${m}" aria-pressed="${!!pr.marks[m]}" ${hasMark(m) ? '' : 'disabled style="opacity:.4"'}>${n}</button>`).join('')}</div>
+    <h3>作業用の印</h3>
+    <div class="row">${ck('dots', '地の文の両端に点（・）をつける')}</div>
+    <div class="row">${ck('kuten', '句点（。）を赤にする')}</div>
+    <h3>整理欄（書きこむマス）</h3>
+    <div class="row">${ck('seiriOn', '整理欄を入れる')}</div>
+    <div class="row" style="flex-direction:column;align-items:flex-start">${seiriWords}</div>
+    <div class="row">マスの数 <input type="number" id="prBoxes" min="1" max="14" value="${pr.boxes}"></div>
+    <h3>名前・日付</h3>
+    <div class="row">${ck('name', '名前の欄')}${ck('date', '日付の欄')}</div>
+    <p class="note">「印刷する」を押すと、ブラウザの印刷の画面がひらきます。「PDFに保存」もえらべます。</p>`;
+}
+
+function onPrintOpt(e) {
+  const t = e.target;
+  const b = t.closest && t.closest('button');
+  if (b && b.dataset.k) { pr[b.dataset.k] = b.dataset.v === 'true'; }
+  else if (b && b.dataset.mark) { pr.marks[b.dataset.mark] = !pr.marks[b.dataset.mark]; }
+  else if (t.dataset && t.dataset.ck) { pr[t.dataset.ck] = t.checked; }
+  else if (t.dataset && t.dataset.seiri) { pr.seiri[t.dataset.seiri] = t.checked; pr.seiriOn = true; }
+  else if (t.id === 'prTitle') { pr.title = t.value; renderSheet(); return; }
+  else if (t.id === 'prFs') { pr.fs = t.value === 'auto' ? 'auto' : +t.value; }
+  else if (t.id === 'prBoxes') { pr.boxes = Math.max(1, Math.min(14, +t.value || 5)); }
+  else return;
+  buildPrintOpts();
+  renderSheet();
+}
+
+function sheetScenes(s) {
+  let h = '';
+  s.scenes.forEach((sc) => {
+    h += '<div class="scene">';
+    sc.forEach((l) => {
+      const kind = s.type === '詩' ? 'shi' : (l.t.startsWith('「') ? 'kaiwa' : 'ji');
+      let t = lineHtml(l.t, pr.wakachi);
+      if (pr.kuten) t = t.replace(/。/g, '<span class="kuten">。</span>');
+      h += `<span class="ln ${kind}">${t}</span>`;
+    });
+    h += '</div>';
+  });
+  return h;
+}
+
+function renderSheet() {
+  const s = app.story;
+  const sheet = $('sheet');
+  sheet.className = 'sheet ' + (pr.landscape ? 'landscape' : 'portrait');
+  const top = (pr.name || pr.date)
+    ? `<div class="s-top">${pr.name ? 'なまえ <span class="u">&nbsp;</span>' : ''}${pr.date ? 'ひづけ <span class="u" style="width:30mm">&nbsp;</span>' : ''}</div>` : '';
+  const seiri = pr.seiriOn
+    ? `<div class="seiri">${s.words.filter((w) => pr.seiri[w]).map((w) => `<div class="srow"><span>${esc(SEIRI_LABEL[w] || w)}</span><span>→</span><span class="boxes">${'<span class="box"></span>'.repeat(pr.boxes)}</span></div>`).join('')}</div>` : '';
+  const cls = ['page', pr.vertical ? 'v' : 'h', pr.dots ? 'dots' : ''].concat(PR_MARKS.filter(([m]) => pr.marks[m]).map(([m]) => 'mk-' + m)).join(' ');
+  sheet.innerHTML = `${top}<h1>${esc(pr.title)}</h1><div class="s-text"><div class="${cls}">${sheetScenes(s)}</div></div>${seiri}`;
+  layoutSheet();
+}
+
+function layoutSheet() {
+  const sheet = $('sheet');
+  const page = sheet.querySelector('.s-text .page');
+  // 文字の大きさ：自動のときは、用紙におさまる最大の大きさ
+  if (pr.fs === 'auto') {
+    const fits = (px) => { page.style.setProperty('--fs', px + 'px'); return page.scrollWidth <= page.clientWidth + 1 && page.scrollHeight <= page.clientHeight + 1; };
+    let lo = 10, hi = 64;
+    if (!fits(lo)) { page.style.setProperty('--fs', lo + 'px'); }
+    else { while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (fits(mid)) lo = mid; else hi = mid; } page.style.setProperty('--fs', lo + 'px'); }
+  } else {
+    page.style.setProperty('--fs', (pr.fs * 96 / 72) + 'px');
+  }
+  page.classList.toggle('cols', !pr.vertical && page.querySelectorAll('.ln').length >= 12);
+  // 画面の大きさに合わせて、用紙を縮めて見せる
+  const stage = $('prStage');
+  const w = (pr.landscape ? 297 : 210) * MM, h = (pr.landscape ? 210 : 297) * MM;
+  const k = Math.min((stage.clientWidth - 36) / w, (stage.clientHeight - 36) / h, 1.2);
+  $('prScale').style.setProperty('--s', k);
+  $('prWrap').style.width = w * k + 'px';
+  $('prWrap').style.height = h * k + 'px';
+  // 印刷の用紙の向き
+  let st = $('prPageStyle');
+  if (!st) { st = document.createElement('style'); st.id = 'prPageStyle'; document.head.appendChild(st); }
+  st.textContent = `@page { size: A4 ${pr.landscape ? 'landscape' : 'portrait'}; margin: 0; }`;
+}
+
+function doPrint() {
+  document.body.classList.add('printing');
+  const done = () => { document.body.classList.remove('printing'); window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done);
+  window.print();
+}
+
 // ---------- ボタンとキー ----------
 function bind() {
+  $('btnPrint').onclick = openPrinter;
+  $('prBack').onclick = closePrinter;
+  $('prGo').onclick = doPrint;
+  $('prOpts').addEventListener('click', onPrintOpt);
+  $('prOpts').addEventListener('change', onPrintOpt);
+  $('prOpts').addEventListener('input', (e) => { if (e.target.id === 'prTitle') onPrintOpt(e); });
+  window.addEventListener('resize', () => { if (pr) layoutSheet(); });
   $('btnMotion').onclick = () => { app.view.motion = !app.view.motion; savePref(); syncMotion(); };
   $('btnPlay').onclick = togglePlay;
   $('btnRewind').onclick = rewindAudio;
@@ -416,8 +563,10 @@ function bind() {
   });
 
   document.addEventListener('keydown', (e) => {
+    if (pr) { if (e.key === 'Escape' && !e.target.closest('input, textarea')) closePrinter(); return; }   // 印刷の画面のあいだは、本文のキーを使わない
     if (!app.story || e.target.closest('input, textarea')) return;
     const v = app.view;
+    if (e.key === 'p' || e.key === 'P') { openPrinter(); return; }
     const next = v.vertical ? 'ArrowLeft' : 'ArrowDown';
     const prev = v.vertical ? 'ArrowRight' : 'ArrowUp';
     if (e.key === 'Escape') closeStory();
