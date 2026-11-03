@@ -101,7 +101,14 @@ function renderShelf() {
   const shelf = $('bookcase');
   shelf.innerHTML = '';
   $('empty').hidden = list.length > 0;
-  list.forEach((s) => {
+  // 2段の棚に、上の段から半分ずつならべる（1段は11冊まで）
+  const upper = document.createElement('div'), lower = document.createElement('div');
+  upper.className = 'row upper';
+  lower.className = 'row lower';
+  shelf.appendChild(upper);
+  shelf.appendChild(lower);
+  const split = Math.min(11, Math.ceil(list.length / 2));
+  list.forEach((s, idx) => {
     const b = document.createElement('button');
     b.className = 'book';
     // 本の背の色：しぼりこみ中はその札の色、ふだんは最初の札の色
@@ -109,7 +116,7 @@ function renderShelf() {
     b.title = `${s.title}（${charCount(s)}字）\nねらい：${s.aim || ''}\n札：${s.words.join('・')}`;
     b.innerHTML = `<span class="no">${kansuji(s.no)}</span><span class="ttl">${esc(s.title)}</span><span class="band"></span><span class="kind">${esc(s.type)}</span>`;
     b.onclick = () => playIntro(b, s);
-    shelf.appendChild(b);
+    (idx < split ? upper : lower).appendChild(b);
   });
 }
 
@@ -147,7 +154,8 @@ function playIntro(btn, s) {
   el.style.setProperty('--c', color);
   el.innerHTML = '<div class="glow"></div><div class="book3d"><div class="back"></div><div class="blk"></div>' +
     '<div class="cover"><div class="face front"><span class="no">' + kansuji(s.no) + '</span><span class="ttl">' + esc(s.title) + '</span></div><div class="face inside"></div></div></div>' +
-    '<img class="openimg" src="img/book-open.png" alt="">';
+    '<div class="openbook"><img src="img/book-open.png" alt=""><div class="pg lp"><span class="t">' + s.title.split('　').map((w) => '<span>' + esc(w) + '</span>').join('') + '</span></div>' +
+    '<div class="pg rp">' + s.scenes.flat().slice(0, 6).map((l) => '<span>' + esc(plain(l.t).replace(/[\s　]/g, '')) + '</span>').join('') + '</div></div>';
   document.body.appendChild(el);
   const book = el.querySelector('.book3d'), cover = el.querySelector('.cover'), glow = el.querySelector('.glow');
   intro = { el, anims: [], timers: [] };
@@ -169,7 +177,7 @@ function playIntro(btn, s) {
   go(book, [{ transform: 'translate(0,0) scale(1) rotateY(-14deg)' }, { transform: `translate(${bw / 2}px, 0) scale(1.05) rotateY(0deg)` }], { duration: 1000, delay: 1050, easing: 'ease-in-out' });
   go(glow, [{ opacity: .9, transform: 'scale(1.6)' }, { opacity: 1, transform: 'scale(4.2)' }], { duration: 900, delay: 1500, easing: 'ease-in' });
   // 表紙がひらききるころ、ひらいた本の絵に入れかえる
-  go(el.querySelector('.openimg'), [{ opacity: 0 }, { opacity: 1 }], { duration: 450, delay: 1750 });
+  go(el.querySelector('.openbook'),[{ opacity: 0 }, { opacity: 1 }], { duration: 450, delay: 1750 });
   go(book, [{ opacity: 1 }, { opacity: 0 }], { duration: 450, delay: 1750 });
   // 4. 光のなかで本文を出し、光がやわらぐ。本文はふわっと浮かぶ
   later(2250, () => {
