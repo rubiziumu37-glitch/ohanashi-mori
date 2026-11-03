@@ -136,7 +136,8 @@ body { font-family: var(--font-ui); color: var(--ink); background: var(--cream);
 .intro { position: fixed; inset: 0; z-index: 50; perspective: 1600px; overflow: hidden; cursor: pointer;
   background: radial-gradient(ellipse at center, rgba(20,40,28,.78), rgba(8,18,12,.92)); }
 .intro .glow { position: absolute; left: 50%; top: 50%; width: 60vmin; height: 60vmin; margin: -30vmin 0 0 -30vmin; border-radius: 50%;
-  background: radial-gradient(circle, #fffdf0 0%, #fff3b8 28%, rgba(255,230,140,.55) 52%, rgba(255,230,140,0) 72%); opacity: 0; transform: scale(.2); }
+  background: url("../img/light-orb.png") center / contain no-repeat, radial-gradient(circle, #fffdf0 0%, #fff3b8 28%, rgba(255,230,140,.55) 52%, rgba(255,230,140,0) 72%); opacity: 0; transform: scale(.2); }
+.intro .openimg { position: absolute; left: 50%; top: 50%; width: calc(var(--bw) * 2.2); transform: translate(-50%, -50%); opacity: 0; pointer-events: none; filter: drop-shadow(0 14px 22px rgba(0,0,0,.45)); }
 .intro .book3d { position: absolute; left: 50%; top: 50%; width: var(--bw); height: var(--bh); margin: calc(var(--bh) / -2) 0 0 calc(var(--bw) / -2);
   transform-style: preserve-3d; transform-origin: center; }
 .intro .blk { position: absolute; inset: 0; border-radius: 4px 10px 10px 4px;
@@ -144,8 +145,12 @@ body { font-family: var(--font-ui); color: var(--ink); background: var(--cream);
 .intro .back { position: absolute; inset: 0; border-radius: 4px 10px 10px 4px; background: var(--c, #2E6B3F); transform: translateZ(-14px); }
 .intro .cover { position: absolute; inset: 0; transform-origin: left center; transform-style: preserve-3d; }
 .intro .face { position: absolute; inset: 0; border-radius: 4px 10px 10px 4px; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; padding: 8% 0; }
-.intro .front { background: linear-gradient(90deg, rgba(0,0,0,.28), rgba(255,255,255,.2) 12%, rgba(0,0,0,0) 40%, rgba(0,0,0,.18)), var(--cover-img, none) center/cover, var(--c, #2E6B3F);
-  color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.5); box-shadow: inset 0 0 0 6px rgba(255,255,255,.18), 4px 6px 18px rgba(0,0,0,.4); }
+.intro .front { --cover-img: url("../img/book-cover.png"); background: var(--cover-img) center / 100% 100% no-repeat; border-radius: 0; padding: 14% 0 12% 9%;
+  color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.55); filter: drop-shadow(4px 6px 10px rgba(0,0,0,.4)); }
+/* 本ごとの色：表紙の布の色だけを、本の色に寄せる（革や金具の形は表紙の絵のまま） */
+.intro .front::before { content: ""; position: absolute; inset: 0; background: var(--c, #2E6B3F); mix-blend-mode: color; opacity: .75;
+  -webkit-mask: var(--cover-img) center / 100% 100% no-repeat; mask: var(--cover-img) center / 100% 100% no-repeat; pointer-events: none; }
+.intro .front > span { position: relative; }
 .intro .front .no { font: 700 calc(var(--bw) * .09)/1 var(--font-text); background: rgba(255,255,255,.92); color: var(--ink); text-shadow: none; border-radius: 6px; padding: .5em .45em; writing-mode: vertical-rl; }
 .intro .front .ttl { flex: 1; writing-mode: vertical-rl; font: 700 calc(var(--bw) * .1)/1.35 var(--font-text); letter-spacing: .05em; margin-top: 1em; }
 .intro .inside { transform: rotateY(180deg); background: linear-gradient(90deg, #efe6cf, #fffdf6 30%); }

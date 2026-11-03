@@ -146,7 +146,8 @@ function playIntro(btn, s) {
   el.style.setProperty('--bh', bh + 'px');
   el.style.setProperty('--c', color);
   el.innerHTML = '<div class="glow"></div><div class="book3d"><div class="back"></div><div class="blk"></div>' +
-    '<div class="cover"><div class="face front"><span class="no">' + kansuji(s.no) + '</span><span class="ttl">' + esc(s.title) + '</span></div><div class="face inside"></div></div></div>';
+    '<div class="cover"><div class="face front"><span class="no">' + kansuji(s.no) + '</span><span class="ttl">' + esc(s.title) + '</span></div><div class="face inside"></div></div></div>' +
+    '<img class="openimg" src="img/book-open.png" alt="">';
   document.body.appendChild(el);
   const book = el.querySelector('.book3d'), cover = el.querySelector('.cover'), glow = el.querySelector('.glow');
   intro = { el, anims: [], timers: [] };
@@ -167,6 +168,9 @@ function playIntro(btn, s) {
   go(cover, [{ transform: 'rotateY(0deg)' }, { transform: 'rotateY(-172deg)' }], { duration: 1000, delay: 1050, easing: 'cubic-bezier(.4,.1,.2,1)' });
   go(book, [{ transform: 'translate(0,0) scale(1) rotateY(-14deg)' }, { transform: `translate(${bw / 2}px, 0) scale(1.05) rotateY(0deg)` }], { duration: 1000, delay: 1050, easing: 'ease-in-out' });
   go(glow, [{ opacity: .9, transform: 'scale(1.6)' }, { opacity: 1, transform: 'scale(4.2)' }], { duration: 900, delay: 1500, easing: 'ease-in' });
+  // 表紙がひらききるころ、ひらいた本の絵に入れかえる
+  go(el.querySelector('.openimg'), [{ opacity: 0 }, { opacity: 1 }], { duration: 450, delay: 1750 });
+  go(book, [{ opacity: 1 }, { opacity: 0 }], { duration: 450, delay: 1750 });
   // 4. 光のなかで本文を出し、光がやわらぐ。本文はふわっと浮かぶ
   later(2250, () => {
     openStory(s.id);
