@@ -4,7 +4,9 @@
 
 const $ = (id) => document.getElementById(id);
 const KANSUJI = ['〇', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
-const MARKS = ['kaiwa', 'ji', 'hito', 'toki', 'basho'];
+const MARKS = ['hito', 'kaiwa', 'toki', 'basho', 'oto', 'kokoro'];
+const MARK_TAG = /\[(人|時|所|音|心):([^\[\]]+)\]/;   // しるし1つ（内側から順に外す）
+const MARK_CLASS = { 人: 'm-hito', 時: 'm-toki', 所: 'm-basho', 音: 'm-oto', 心: 'm-kokoro' };
 const PREF_KEY = 'ohanashi-mori-view';   // 見せ方の好みだけを端末に覚える（物語や記録ではない）
 
 const app = {
@@ -27,8 +29,9 @@ function esc(s) {
   return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 function plain(t) {
-  // しるしの記号を外した本文
-  return t.replace(/\[(人|時|所):([^\]]+)\]/g, '$2');
+  // しるしの記号を外した本文（入れ子のしるしも外す）
+  while (MARK_TAG.test(t)) t = t.replace(MARK_TAG, '$2');
+  return t;
 }
 function charCount(story) {
   // 文字数（言葉の区切りの空白は数えない）
@@ -138,10 +141,9 @@ function closeStory() {
 function lineHtml(t) {
   let h = esc(t);
   if (!app.view.wakachi) h = h.replace(/　/g, '');
-  return h.replace(/\[(人|時|所):([^\]]+)\]/g, (m, k, w) => {
-    const cls = { 人: 'm-hito', 時: 'm-toki', 所: 'm-basho' }[k];
-    return `<span class="${cls}">${w}</span>`;
-  });
+  // 入れ子のしるし（[心:[音:にっこり]　わらいました]）は内側から順に span にする
+  while (MARK_TAG.test(h)) h = h.replace(MARK_TAG, (m, k, w) => `<span class="${MARK_CLASS[k]}">${w}</span>`);
+  return h;
 }
 
 function renderPage() {
@@ -189,9 +191,21 @@ function syncButtons() {
   $('btnWakachi').setAttribute('aria-pressed', String(v.wakachi));
   $('btnSlit').setAttribute('aria-pressed', String(v.slit));
   document.querySelectorAll('.mk').forEach((b) => b.setAttribute('aria-pressed', String(!!v.marks[b.dataset.mark])));
-  // 詩には会話文・地の文の区別がないので押せなくする
-  const shi = app.story && app.story.type === '詩';
-  document.querySelectorAll('.mk.kaiwa, .mk.ji').forEach((b) => { b.disabled = shi; b.style.opacity = shi ? .4 : 1; });
+  // 本文にないしるしのボタンは押せなくする（詩には会話文がない、など）
+  document.querySelectorAll('.mk').forEach((b) => {
+    const has = hasMark(b.dataset.mark);
+    b.disabled = !has;
+    b.style.opacity = has ? 1 : .4;
+  });
+}
+
+function hasMark(m) {
+  const s = app.story;
+  if (!s) return false;
+  const lines = s.scenes.flat();
+  if (m === 'kaiwa') return s.type !== '詩' && lines.some((l) => l.t.startsWith('「'));
+  const key = { hito: '[人:', toki: '[時:', basho: '[所:', oto: '[音:', kokoro: '[心:' }[m];
+  return lines.some((l) => l.t.includes(key));
 }
 
 // 画面に収まるいちばん大きい文字にする

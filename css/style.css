@@ -22,12 +22,14 @@
   --btn-edge: #C9B79C;
   --on: #2E6B3F;           /* 押されているボタン */
 
-  /* しるしの色 */
-  --mk-kaiwa: #FFF0A6;     /* 会話文：うすい黄 */
-  --mk-ji: #D8EEFF;        /* 地の文：うすい水色 */
-  --mk-hito: #D32F2F;      /* 登場人物：赤い字 */
-  --mk-toki: #2E7D32;      /* 時間：緑のわく */
-  --mk-basho: #E65100;     /* 場所：だいだいのわく */
+  /* しるしの色（11/3 先生の指定：登場人物＝赤、会話文＝青、時間＝オレンジ、場所＝黒、オノマトペ＝紫、心情＝緑） */
+  --mk-hito: #E53935;      /* 登場人物：赤い字 */
+  --mk-kaiwa: #1565C0;     /* 会話文：青い字 */
+  --mk-kaiwa-bg: #E3F0FF;  /* 会話文：うすい青の地 */
+  --mk-toki: #EF6C00;      /* 時間：オレンジのわく */
+  --mk-basho: #111111;     /* 場所：黒のわく */
+  --mk-oto: #8E24AA;       /* オノマトペ：紫の字 */
+  --mk-kokoro: #2E7D32;    /* 心情：緑の線 */
 
   --font-text: "Klee One", "BIZ UDPMincho", serif;
   --font-ui: "BIZ UDPGothic", "Hiragino Maru Gothic ProN", "Noto Sans JP", sans-serif;
@@ -115,23 +117,28 @@ body { font-family: var(--font-ui); color: var(--ink); background: var(--cream);
 .page.h .scene { break-inside: avoid; }
 
 /* しるし */
-.page.mk-kaiwa .ln.kaiwa { background: var(--mk-kaiwa); }
-.page.mk-ji .ln.ji { background: var(--mk-ji); }
+.page.mk-kaiwa .ln.kaiwa { color: var(--mk-kaiwa); background: var(--mk-kaiwa-bg); }
 .page.mk-hito .m-hito { color: var(--mk-hito); }
 .page.mk-toki .m-toki { outline: .08em solid var(--mk-toki); outline-offset: .04em; border-radius: .15em; color: var(--mk-toki); }
-.page.mk-basho .m-basho { outline: .08em solid var(--mk-basho); outline-offset: .04em; border-radius: .15em; color: var(--mk-basho); }
+.page.mk-basho .m-basho { outline: .08em solid var(--mk-basho); outline-offset: .04em; border-radius: .15em; }
+.page.mk-oto .m-oto { color: var(--mk-oto); }
+.page.mk-kokoro .m-kokoro { text-decoration: underline .12em var(--mk-kokoro); text-underline-offset: .25em; text-decoration-skip-ink: none; }
+.page.v.mk-kokoro .m-kokoro { text-underline-position: left; }
 
 /* 読む行だけ */
 .page.slit .ln { opacity: .14; }
 .page.slit .ln.cur { opacity: 1; box-shadow: 0 0 0 .12em #F9A825; }
 .page.slit .ttl { opacity: .3; }
 
-/* しるしのボタンの色見本 */
-.mk.kaiwa { border-left: 10px solid #E8C400; }
-.mk.ji { border-left: 10px solid #64B5F6; }
-.mk.hito { border-left: 10px solid var(--mk-hito); }
-.mk.toki { border-left: 10px solid var(--mk-toki); }
-.mk.basho { border-left: 10px solid var(--mk-basho); }
+/* しるしのボタン：左の帯が色見本。押すと、その色のボタンになる */
+.mk.hito { --mc: var(--mk-hito); }
+.mk.kaiwa { --mc: var(--mk-kaiwa); }
+.mk.toki { --mc: var(--mk-toki); }
+.mk.basho { --mc: var(--mk-basho); }
+.mk.oto { --mc: var(--mk-oto); }
+.mk.kokoro { --mc: var(--mk-kokoro); }
+.mk { border-left: 10px solid var(--mc); }
+.btn.tog.mk[aria-pressed="true"] { background: var(--mc); border-color: var(--mc); box-shadow: 0 4px 0 rgba(0,0,0,.35); }
 
 /* 下のボタンの帯 */
 .toolbar {

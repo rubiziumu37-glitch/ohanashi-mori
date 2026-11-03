@@ -1,36 +1,191 @@
 {
   "_説明": "札（学習に用いる言葉）の一覧。光村図書「学習に用いる言葉」のうち読むことに関わる語（ai-staff-room の 2026-10-21 対応表）と、先生が授業で使った言葉。color は本の背と札の色。",
   "words": [
-    { "name": "題名", "group": "共通", "grade": "1年", "color": "#8D6E63" },
-    { "name": "登場人物", "group": "物語文", "grade": "2年", "color": "#E57373" },
-    { "name": "出来事", "group": "物語文", "grade": "2年", "color": "#F06292" },
-    { "name": "あらすじ", "group": "物語文", "grade": "2年", "color": "#BA68C8" },
-    { "name": "場面", "group": "物語文", "grade": "3年", "color": "#9575CD" },
-    { "name": "会話文・地の文", "group": "物語文", "grade": "3年", "color": "#4FC3F7" },
-    { "name": "語り手", "group": "物語文", "grade": "3年", "color": "#4DB6AC" },
-    { "name": "設定", "group": "物語文", "grade": "4年", "color": "#81C784" },
-    { "name": "情景", "group": "物語文", "grade": "4年", "color": "#AED581" },
-    { "name": "心情", "group": "物語文", "grade": "5年", "color": "#FFB74D" },
-    { "name": "人物像", "group": "物語文", "grade": "5年", "color": "#FF8A65" },
-    { "name": "山場", "group": "物語文", "grade": "5年", "color": "#A1887F" },
-    { "name": "視点", "group": "物語文", "grade": "6年", "color": "#90A4AE" },
-    { "name": "筆者", "group": "説明文", "grade": "2年", "color": "#7986CB" },
-    { "name": "組み立て", "group": "説明文", "grade": "2年", "color": "#64B5F6" },
-    { "name": "段落", "group": "説明文", "grade": "3年", "color": "#4DD0E1" },
-    { "name": "問い（問いの文）", "group": "説明文", "grade": "3年", "color": "#4DB6AC" },
-    { "name": "引用", "group": "説明文", "grade": "3年", "color": "#9CCC65" },
-    { "name": "見出し", "group": "説明文", "grade": "4年", "color": "#D4E157" },
-    { "name": "要点", "group": "説明文", "grade": "4年", "color": "#FFD54F" },
-    { "name": "要約", "group": "説明文", "grade": "4年", "color": "#FFB74D" },
-    { "name": "対比", "group": "説明文", "grade": "4年", "color": "#FF8A65" },
-    { "name": "出典", "group": "説明文", "grade": "4年", "color": "#A1887F" },
-    { "name": "構成", "group": "説明文", "grade": "5年", "color": "#9575CD" },
-    { "name": "要旨", "group": "説明文", "grade": "5年", "color": "#BA68C8" },
-    { "name": "事例", "group": "説明文", "grade": "5年", "color": "#F06292" },
-    { "name": "主張", "group": "説明文", "grade": "5年", "color": "#E57373" },
-    { "name": "根拠", "group": "共通", "grade": "5年", "color": "#90A4AE" },
-    { "name": "時間", "group": "先生の言葉", "grade": "", "color": "#66BB6A" },
-    { "name": "場所", "group": "先生の言葉", "grade": "", "color": "#FFA726" },
-    { "name": "音とリズム", "group": "先生の言葉", "grade": "", "color": "#F48FB1" }
+    {
+      "name": "題名",
+      "group": "共通",
+      "grade": "1年",
+      "color": "#8D6E63"
+    },
+    {
+      "name": "登場人物",
+      "group": "物語文",
+      "grade": "2年",
+      "color": "#E53935"
+    },
+    {
+      "name": "出来事",
+      "group": "物語文",
+      "grade": "2年",
+      "color": "#F06292"
+    },
+    {
+      "name": "あらすじ",
+      "group": "物語文",
+      "grade": "2年",
+      "color": "#BA68C8"
+    },
+    {
+      "name": "場面",
+      "group": "物語文",
+      "grade": "3年",
+      "color": "#9575CD"
+    },
+    {
+      "name": "会話文・地の文",
+      "group": "物語文",
+      "grade": "3年",
+      "color": "#1E88E5"
+    },
+    {
+      "name": "語り手",
+      "group": "物語文",
+      "grade": "3年",
+      "color": "#4DB6AC"
+    },
+    {
+      "name": "設定",
+      "group": "物語文",
+      "grade": "4年",
+      "color": "#81C784"
+    },
+    {
+      "name": "情景",
+      "group": "物語文",
+      "grade": "4年",
+      "color": "#AED581"
+    },
+    {
+      "name": "心情",
+      "group": "物語文",
+      "grade": "5年",
+      "color": "#43A047"
+    },
+    {
+      "name": "人物像",
+      "group": "物語文",
+      "grade": "5年",
+      "color": "#FF8A65"
+    },
+    {
+      "name": "山場",
+      "group": "物語文",
+      "grade": "5年",
+      "color": "#A1887F"
+    },
+    {
+      "name": "視点",
+      "group": "物語文",
+      "grade": "6年",
+      "color": "#90A4AE"
+    },
+    {
+      "name": "筆者",
+      "group": "説明文",
+      "grade": "2年",
+      "color": "#7986CB"
+    },
+    {
+      "name": "組み立て",
+      "group": "説明文",
+      "grade": "2年",
+      "color": "#64B5F6"
+    },
+    {
+      "name": "段落",
+      "group": "説明文",
+      "grade": "3年",
+      "color": "#4DD0E1"
+    },
+    {
+      "name": "問い（問いの文）",
+      "group": "説明文",
+      "grade": "3年",
+      "color": "#4DB6AC"
+    },
+    {
+      "name": "引用",
+      "group": "説明文",
+      "grade": "3年",
+      "color": "#9CCC65"
+    },
+    {
+      "name": "見出し",
+      "group": "説明文",
+      "grade": "4年",
+      "color": "#D4E157"
+    },
+    {
+      "name": "要点",
+      "group": "説明文",
+      "grade": "4年",
+      "color": "#FFD54F"
+    },
+    {
+      "name": "要約",
+      "group": "説明文",
+      "grade": "4年",
+      "color": "#FFB74D"
+    },
+    {
+      "name": "対比",
+      "group": "説明文",
+      "grade": "4年",
+      "color": "#FF8A65"
+    },
+    {
+      "name": "出典",
+      "group": "説明文",
+      "grade": "4年",
+      "color": "#A1887F"
+    },
+    {
+      "name": "構成",
+      "group": "説明文",
+      "grade": "5年",
+      "color": "#9575CD"
+    },
+    {
+      "name": "要旨",
+      "group": "説明文",
+      "grade": "5年",
+      "color": "#BA68C8"
+    },
+    {
+      "name": "事例",
+      "group": "説明文",
+      "grade": "5年",
+      "color": "#F06292"
+    },
+    {
+      "name": "主張",
+      "group": "説明文",
+      "grade": "5年",
+      "color": "#E57373"
+    },
+    {
+      "name": "根拠",
+      "group": "共通",
+      "grade": "5年",
+      "color": "#90A4AE"
+    },
+    {
+      "name": "時間",
+      "group": "先生の言葉",
+      "grade": "",
+      "color": "#FB8C00"
+    },
+    {
+      "name": "場所",
+      "group": "先生の言葉",
+      "grade": "",
+      "color": "#424242"
+    },
+    {
+      "name": "音とリズム",
+      "group": "先生の言葉",
+      "grade": "",
+      "color": "#F48FB1"
+    }
   ]
 }
