@@ -29,7 +29,8 @@
   --mk-toki: #EF6C00;      /* 時間：オレンジのわく */
   --mk-basho: #111111;     /* 場所：黒のわく */
   --mk-oto: #8E24AA;       /* オノマトペ：紫の字 */
-  --mk-kokoro: #2E7D32;    /* 心情：緑の線 */
+  --mk-kokoro: #2E7D32;    /* 心情：緑（ボタンの色） */
+  --mk-kokoro-bg: #C8EBC4; /* 心情：うすい緑のマーカー */
 
   --font-text: "Klee One", "BIZ UDPMincho", serif;
   --font-ui: "BIZ UDPGothic", "Hiragino Maru Gothic ProN", "Noto Sans JP", sans-serif;
@@ -122,8 +123,7 @@ body { font-family: var(--font-ui); color: var(--ink); background: var(--cream);
 .page.mk-toki .m-toki { outline: .08em solid var(--mk-toki); outline-offset: .04em; border-radius: .15em; color: var(--mk-toki); }
 .page.mk-basho .m-basho { outline: .08em solid var(--mk-basho); outline-offset: .04em; border-radius: .15em; }
 .page.mk-oto .m-oto { color: var(--mk-oto); }
-.page.mk-kokoro .m-kokoro { text-decoration: underline .12em var(--mk-kokoro); text-underline-offset: .25em; text-decoration-skip-ink: none; }
-.page.v.mk-kokoro .m-kokoro { text-underline-position: left; }
+.page.mk-kokoro .m-kokoro { background: var(--mk-kokoro-bg); border-radius: .15em; box-shadow: 0 0 0 .06em var(--mk-kokoro-bg); }   /* うすい緑のマーカー */
 
 /* 読む行だけ */
 .page.slit .ln { opacity: .14; }
