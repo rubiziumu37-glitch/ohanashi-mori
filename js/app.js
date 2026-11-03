@@ -16,6 +16,8 @@ const app = {
   story: null,       // 開いている物語
   view: { vertical: true, fs: null, wakachi: true, marks: {}, slit: false, ui: true },
   cur: 0,            // 読む行（行の通し番号）
+  audio: null,       // 範読の音声（audio/*.wav）。音声のある物語だけ
+  reading: false,    // 範読の途中（読んでいる行に色をつける）
 };
 
 // ---------- 小さな道具 ----------
@@ -119,6 +121,7 @@ function openStory(id) {
   app.view.fs = null;
   app.view.marks = {};
   app.view.slit = false;
+  setupAudio(s);
   history.replaceState(null, '', '#' + id);
   $('shelf').hidden = true;
   $('reader').hidden = false;
@@ -132,6 +135,7 @@ function openStory(id) {
 }
 
 function closeStory() {
+  teardownAudio();
   app.story = null;
   history.replaceState(null, '', location.pathname);
   $('reader').hidden = true;
@@ -175,6 +179,7 @@ function applyView() {
   page.classList.toggle('cols', !v.vertical && page.querySelectorAll('.ln').length >= 12);
   MARKS.forEach((m) => page.classList.toggle('mk-' + m, !!v.marks[m]));
   page.classList.toggle('slit', v.slit);
+  page.classList.toggle('reading', app.reading);
   page.querySelectorAll('.ln').forEach((el) => el.classList.toggle('cur', +el.dataset.i === app.cur));
   if (v.fs) page.style.setProperty('--fs', v.fs + 'px');
   // ボタンの帯の高さぶん、本文を上に
@@ -233,8 +238,88 @@ function setCur(i) {
   if (el) el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 
+// ---------- 範読（音声）：story.audio = { src, cues }。cues[i] は i 行目を読みはじめる秒 ----------
+function teardownAudio() {
+  if (app.audio) { app.audio.pause(); app.audio.removeAttribute('src'); app.audio.load(); }
+  app.audio = null;
+  app.reading = false;
+  $('grpAudio').hidden = true;
+  $('btnPlay').setAttribute('aria-pressed', 'false');
+}
+
+function setupAudio(s) {
+  teardownAudio();
+  if (!s.audio) return;
+  const a = new Audio(s.audio.src);
+  a.preload = 'auto';
+  a.onended = () => { app.reading = false; syncPlay(); applyView(); };
+  a.onpause = syncPlay;
+  a.ontimeupdate = syncLine;   // 画面が見えていないときなど、描画が止まる場合の保険
+  a.onplay = () => { app.reading = true; syncPlay(); tickAudio(); };
+  app.audio = a;
+  $('grpAudio').hidden = false;
+  syncPlay();
+}
+
+function syncPlay() {
+  const playing = !!app.audio && !app.audio.paused && !app.audio.ended;
+  $('btnPlay').setAttribute('aria-pressed', String(playing));
+  $('btnPlay').textContent = playing ? '■ とめる' : '▶ 範読';
+}
+
+function lineAt(t) {
+  // 時刻 t にいる行（題名のあいだは -1）
+  const cues = app.story.audio.cues;
+  let i = -1;
+  while (i + 1 < cues.length && cues[i + 1] <= t) i++;
+  return i;
+}
+
+function syncLine() {
+  const a = app.audio;
+  if (!a || !app.reading) return;
+  const i = lineAt(a.currentTime);
+  if (i !== app.cur) {
+    app.cur = i;
+    applyView();
+    const el = $('page').querySelector('.ln.cur');
+    if (el) el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }
+}
+
+function tickAudio() {
+  const a = app.audio;
+  if (!a || a.paused || a.ended) return;
+  syncLine();
+  requestAnimationFrame(tickAudio);
+}
+
+function togglePlay() {
+  const a = app.audio;
+  if (!a) return;
+  if (a.paused || a.ended) {
+    if (a.ended) a.currentTime = 0;
+    a.play().catch(() => { /* 音が出せない端末では、何もしない */ });
+  } else {
+    a.pause();
+  }
+}
+
+function rewindAudio() {
+  const a = app.audio;
+  if (!a) return;
+  a.pause();
+  a.currentTime = 0;
+  app.reading = false;
+  app.cur = 0;
+  syncPlay();
+  applyView();
+}
+
 // ---------- ボタンとキー ----------
 function bind() {
+  $('btnPlay').onclick = togglePlay;
+  $('btnRewind').onclick = rewindAudio;
   $('btnBack').onclick = closeStory;
   $('btnHide').onclick = () => { app.view.ui = false; applyView(); fitText(); };
   $('btnShow').onclick = () => { app.view.ui = true; applyView(); fitText(); };
@@ -259,6 +344,7 @@ function bind() {
     else if (e.key === '+' || e.key === ';') $('btnBigger').click();
     else if (e.key === '-') $('btnSmaller').click();
     else if (e.key === '0') fitText();
+    else if (e.key === ' ' && app.audio && !e.target.closest('button')) { togglePlay(); e.preventDefault(); }
     else if (v.slit && e.key === next) { setCur(app.cur + 1); e.preventDefault(); }
     else if (v.slit && e.key === prev) { setCur(app.cur - 1); e.preventDefault(); }
   });
