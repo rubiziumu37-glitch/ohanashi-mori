@@ -600,6 +600,16 @@ function bind() {
   $('btnBigger').onclick = () => { app.view.fs = Math.round((app.view.fs || 32) * 1.1); applyView(); };
   $('btnSmaller').onclick = () => { app.view.fs = Math.max(12, Math.round((app.view.fs || 32) / 1.1)); applyView(); };
   $('btnFit').onclick = fitText;
+  // 全画面：ブラウザのタブやアドレスの帯をかくすと、縦が広くなり、そのぶん字が大きくなる
+  $('btnFull').onclick = () => {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+  };
+  document.addEventListener('fullscreenchange', () => {
+    $('btnFull').setAttribute('aria-pressed', String(!!document.fullscreenElement));
+    $('btnFull').textContent = document.fullscreenElement ? '⛶ 全画面をやめる' : '⛶ 全画面';
+    setTimeout(() => { if (app.story) { applyView(); fitText(); } }, 150);
+  });
   $('btnSlit').onclick = () => { app.view.slit = !app.view.slit; syncButtons(); setCur(app.cur); };
   document.querySelectorAll('#toolbar .mk').forEach((b) => { b.onclick = () => pressMark(b.dataset.mark); });
   $('btnMarkMode').onclick = () => { app.view.markOne = !app.view.markOne; savePref(); syncButtons(); };
@@ -619,6 +629,7 @@ function bind() {
     else if (e.key === '+' || e.key === ';') $('btnBigger').click();
     else if (e.key === '-') $('btnSmaller').click();
     else if (e.key === '0') fitText();
+    else if (e.key === 'f' || e.key === 'F') $('btnFull').click();
     else if (e.key === ' ' && app.audio && !e.target.closest('button')) { togglePlay(); e.preventDefault(); }
     else if (v.slit && e.key === next) { setCur(app.cur + 1); e.preventDefault(); }
     else if (v.slit && e.key === prev) { setCur(app.cur - 1); e.preventDefault(); }

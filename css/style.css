@@ -115,7 +115,7 @@ body { font-family: var(--font-ui); color: var(--ink); background: var(--cream);
   position: absolute; left: var(--tb-w, 0px); right: 0; top: 0; bottom: 0;
   font-family: var(--font-text); font-weight: 600; color: #222;
   font-size: var(--fs, 32px); line-height: 1.55; letter-spacing: .04em;
-  padding: .6em .9em; overflow: auto;
+  padding: .4em .9em; overflow: auto;
 }
 .page.v { writing-mode: vertical-rl; }
 .page .ttl { font-size: 1.1em; margin: 0 0 0 .6em; }   /* 縦書きでは左があと */
