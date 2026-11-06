@@ -31,38 +31,39 @@
 <section id="reader" class="screen" hidden>
   <div class="page" id="page"></div>
 
+  <!-- 左はしの操作パネル（本文の高さを広くとるため、ボタンは左にまとめる） -->
   <div class="toolbar" id="toolbar">
-    <div class="tb-row">
+    <div class="tb-top">
       <button class="btn back" id="btnBack" title="本だなにもどる（Esc）">← 本だな</button>
-      <span class="info" id="info"></span>
       <button class="btn small" id="btnHide" title="ボタンをかくす（H）">かくす</button>
     </div>
-    <div class="tb-row">
-      <div class="group" aria-label="見せ方">
-        <button class="btn tog" id="btnDir">縦書き</button>
-        <button class="btn" id="btnSmaller" title="文字を小さく（−）">A−</button>
-        <button class="btn" id="btnFit" title="画面に合わせる（0）">ぴったり</button>
-        <button class="btn" id="btnBigger" title="文字を大きく（＋）">A＋</button>
-        <button class="btn tog" id="btnWakachi">分かち書き</button>
-      </div>
-      <div class="group" aria-label="しるし">
-        <button class="btn tog mk hito" data-mark="hito">登場人物</button>
-        <button class="btn tog mk kaiwa" data-mark="kaiwa">会話文</button>
-        <button class="btn tog mk toki" data-mark="toki">時間</button>
-        <button class="btn tog mk basho" data-mark="basho">場所</button>
-        <button class="btn tog mk oto" data-mark="oto">オノマトペ</button>
-        <button class="btn tog mk kokoro" data-mark="kokoro">心情</button>
-      </div>
-      <div class="group" aria-label="読む行">
-        <button class="btn tog" id="btnSlit" title="読む行だけ見せる（S）">読む行だけ</button>
-      </div>
-      <div class="group" aria-label="印刷">
-        <button class="btn" id="btnPrint" title="プリント（ワークシート）をつくって印刷する（P）">🖨 印刷</button>
-      </div>
-      <div class="group" id="grpAudio" aria-label="範読" hidden>
-        <button class="btn play" id="btnPlay" title="範読をはじめる・とめる（スペース）">▶ 範読</button>
-        <button class="btn" id="btnRewind" title="はじめにもどす">⏮</button>
-      </div>
+    <div class="info" id="info"></div>
+    <div class="group" id="grpAudio" aria-label="範読" hidden>
+      <button class="btn play" id="btnPlay" title="範読をはじめる・とめる（スペース）">▶ 範読</button>
+      <button class="btn" id="btnRewind" title="はじめにもどす">⏮</button>
+    </div>
+    <div class="group marks" aria-label="しるし">
+      <div class="gtitle">しるし</div>
+      <button class="btn tog wide" id="btnMarkMode" title="ボタンを押したとき、いっせいにつけるか、1つずつ順番につけるか">いっせいに</button>
+      <button class="btn mk hito" data-mark="hito">登場人物</button>
+      <button class="btn mk kaiwa" data-mark="kaiwa">会話文</button>
+      <button class="btn mk toki" data-mark="toki">時間</button>
+      <button class="btn mk basho" data-mark="basho">場所</button>
+      <button class="btn mk oto" data-mark="oto">オノマトペ</button>
+      <button class="btn mk kokoro" data-mark="kokoro">心情</button>
+      <button class="btn small wide" id="btnMarkClear" title="しるしを全部消す">ぜんぶ消す</button>
+    </div>
+    <div class="group" aria-label="見せ方">
+      <div class="gtitle">見せ方</div>
+      <button class="btn" id="btnSmaller" title="文字を小さく（−）">A−</button>
+      <button class="btn" id="btnBigger" title="文字を大きく（＋）">A＋</button>
+      <button class="btn wide" id="btnFit" title="画面に合わせる（0）">ぴったり</button>
+      <button class="btn tog" id="btnDir">縦書き</button>
+      <button class="btn tog" id="btnWakachi">分かち</button>
+      <button class="btn tog wide" id="btnSlit" title="読む行だけ見せる（S）">読む行だけ</button>
+    </div>
+    <div class="group" aria-label="印刷">
+      <button class="btn wide" id="btnPrint" title="プリント（ワークシート）をつくって印刷する（P）">🖨 印刷</button>
     </div>
   </div>
   <button class="btn show-ui" id="btnShow" hidden title="ボタンを出す（H）">ボタン</button>

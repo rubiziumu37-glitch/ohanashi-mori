@@ -1,4 +1,4 @@
-// おはなしの森の図書館 ― 段階①：本だな・札でしぼりこみ・本文の表示（見せ方・しるし・読む行だけ）
+// おはなしの森の図書館 ― 本だな・札でしぼりこみ・本文の表示（見せ方・しるし・読む行だけ）・範読・印刷
 // データは data/stories.json（物語）と data/words.json（札）。この画面は読むだけで、書きかえない。
 'use strict';
 
@@ -7,6 +7,7 @@ const KANSUJI = ['〇', '一', '二', '三', '四', '五', '六', '七', '八', 
 const MARKS = ['hito', 'kaiwa', 'toki', 'basho', 'oto', 'kokoro'];
 const MARK_TAG = /\[(人|時|所|音|心):([^\[\]]+)\]/;   // しるし1つ（内側から順に外す）
 const MARK_CLASS = { 人: 'm-hito', 時: 'm-toki', 所: 'm-basho', 音: 'm-oto', 心: 'm-kokoro' };
+const MARK_SEL = { hito: '.m-hito', kaiwa: '.ln.kaiwa', toki: '.m-toki', basho: '.m-basho', oto: '.m-oto', kokoro: '.m-kokoro' };   // しるしの種類ごとの、本文の中の場所
 const PREF_KEY = 'ohanashi-mori-view';   // 見せ方の好みだけを端末に覚える（物語や記録ではない）
 
 const app = {
@@ -14,7 +15,8 @@ const app = {
   words: [],
   filter: null,      // いま選んでいる札の名前（null＝すべて）
   story: null,       // 開いている物語
-  view: { vertical: true, fs: null, wakachi: true, marks: {}, slit: false, ui: true, motion: true },
+  view: { vertical: true, fs: null, wakachi: true, slit: false, ui: true, motion: true, markOne: false },
+  lit: new Set(),    // ついているしるし（本文の中の通し番号 data-id）。1つずつ、つけたり消したりできる
   cur: 0,            // 読む行（行の通し番号）
   audio: null,       // 範読の音声（audio/*.wav）。音声のある物語だけ
   reading: false,    // 範読の途中（読んでいる行に色をつける）
@@ -48,12 +50,12 @@ function wordColor(name) {
 function loadPref() {
   try {
     const p = JSON.parse(localStorage.getItem(PREF_KEY) || '{}');
-    Object.assign(app.view, p, { marks: {}, slit: false, ui: true, fs: null });
+    Object.assign(app.view, p, { slit: false, ui: true, fs: null });
   } catch (e) { /* 覚えられない端末では、毎回はじめの見せ方 */ }
 }
 function savePref() {
   try {
-    localStorage.setItem(PREF_KEY, JSON.stringify({ vertical: app.view.vertical, wakachi: app.view.wakachi, motion: app.view.motion }));
+    localStorage.setItem(PREF_KEY, JSON.stringify({ vertical: app.view.vertical, wakachi: app.view.wakachi, motion: app.view.motion, markOne: app.view.markOne }));
   } catch (e) { /* なにもしない */ }
 }
 
@@ -200,7 +202,7 @@ function openStory(id) {
   app.story = s;
   app.cur = 0;
   app.view.fs = null;
-  app.view.marks = {};
+  app.lit = new Set();
   app.view.slit = false;
   setupAudio(s);
   history.replaceState(null, '', '#' + id);
@@ -227,7 +229,7 @@ function lineHtml(t, wakachi = app.view.wakachi) {
   let h = esc(t);
   if (!wakachi) h = h.replace(/　/g, '');
   // 入れ子のしるし（[心:[音:にっこり]　わらいました]）は内側から順に span にする
-  while (MARK_TAG.test(h)) h = h.replace(MARK_TAG, (m, k, w) => `<span class="${MARK_CLASS[k]}">${w}</span>`);
+  while (MARK_TAG.test(h)) h = h.replace(MARK_TAG, (m, k, w) => `<span class="${MARK_CLASS[k]} mk-i">${w}</span>`);
   return h;
 }
 
@@ -241,13 +243,14 @@ function renderPage() {
     sc.forEach((l) => {
       const kind = s.type === '詩' ? 'shi' : (l.t.startsWith('「') ? 'kaiwa' : 'ji');
       const sp = l.sp ? ` data-sp="${esc(l.sp)}"` : '';
-      parts.push(`<span class="ln ${kind}" data-i="${i}"${sp}>${lineHtml(l.t)}</span>`);
+      parts.push(`<span class="ln ${kind}${kind === 'kaiwa' ? ' mk-i' : ''}" data-i="${i}"${sp}>${lineHtml(l.t)}</span>`);
       i++;
     });
     parts.push('</div>');
   });
   page.innerHTML = parts.join('');
-  page.querySelectorAll('.ln').forEach((el) => { el.onclick = () => { if (app.view.slit) setCur(+el.dataset.i); }; });
+  // しるしに通し番号をつけ、ついているものをもどす（分かち書きを切りかえても、ついたまま）
+  page.querySelectorAll('.mk-i').forEach((el, n) => { el.dataset.id = n; el.classList.toggle('on', app.lit.has(n)); });
   applyView();
 }
 
@@ -258,16 +261,15 @@ function applyView() {
   page.classList.toggle('h', !v.vertical);
   // 横書きで行が多いときは2段にして、文字を大きく保つ
   page.classList.toggle('cols', !v.vertical && page.querySelectorAll('.ln').length >= 12);
-  MARKS.forEach((m) => page.classList.toggle('mk-' + m, !!v.marks[m]));
   page.classList.toggle('slit', v.slit);
   page.classList.toggle('reading', app.reading);
   page.querySelectorAll('.ln').forEach((el) => el.classList.toggle('cur', +el.dataset.i === app.cur));
   if (v.fs) page.style.setProperty('--fs', v.fs + 'px');
-  // ボタンの帯の高さぶん、本文を上に
+  // 左のパネルのはばのぶん、本文を右に
   const tb = $('toolbar');
   tb.hidden = !v.ui;
   $('btnShow').hidden = v.ui;
-  $('reader').style.setProperty('--tb-h', v.ui ? tb.offsetHeight + 'px' : '0px');
+  $('reader').style.setProperty('--tb-w', v.ui ? tb.offsetWidth + 'px' : '0px');
 }
 
 function syncButtons() {
@@ -276,12 +278,17 @@ function syncButtons() {
   $('btnDir').setAttribute('aria-pressed', 'false');
   $('btnWakachi').setAttribute('aria-pressed', String(v.wakachi));
   $('btnSlit').setAttribute('aria-pressed', String(v.slit));
-  document.querySelectorAll('.mk').forEach((b) => b.setAttribute('aria-pressed', String(!!v.marks[b.dataset.mark])));
-  // 本文にないしるしのボタンは押せなくする（詩には会話文がない、など）
-  document.querySelectorAll('.mk').forEach((b) => {
-    const has = hasMark(b.dataset.mark);
-    b.disabled = !has;
-    b.style.opacity = has ? 1 : .4;
+  $('btnMarkMode').textContent = v.markOne ? '1つずつ順番に' : 'いっせいに';
+  $('btnMarkMode').setAttribute('aria-pressed', String(v.markOne));
+  // しるしのボタン：ついた数／ぜんぶ。本文にないしるしのボタンは押せなくする（詩には会話文がない、など）
+  document.querySelectorAll('#toolbar .mk').forEach((b) => {
+    const items = markItems(b.dataset.mark);
+    const lit = items.filter((el) => el.classList.contains('on')).length;
+    if (!b.dataset.name) b.dataset.name = b.textContent;
+    b.innerHTML = esc(b.dataset.name) + (items.length ? `<span class="cnt">${lit} / ${items.length}</span>` : '');
+    b.setAttribute('aria-pressed', String(lit > 0));
+    b.disabled = !items.length;
+    b.style.opacity = items.length ? 1 : .4;
   });
 }
 
@@ -292,6 +299,42 @@ function hasMark(m) {
   if (m === 'kaiwa') return s.type !== '詩' && lines.some((l) => l.t.startsWith('「'));
   const key = { hito: '[人:', toki: '[時:', basho: '[所:', oto: '[音:', kokoro: '[心:' }[m];
   return lines.some((l) => l.t.includes(key));
+}
+
+// ---------- しるし：1つずつ、つけたり消したりする ----------
+function markItems(m) {
+  return Array.from($('page').querySelectorAll(MARK_SEL[m]));
+}
+
+function setLit(el, on, pop) {
+  const id = +el.dataset.id;
+  if (on) app.lit.add(id); else app.lit.delete(id);
+  el.classList.toggle('on', on);
+  if (on && pop) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+}
+
+// しるしのボタン：「いっせいに」なら全部つける（全部ついていたら消す）。
+// 「1つずつ順番に」なら、まだついていない次の1つをつける（全部ついていたら消して、はじめから）
+function pressMark(m) {
+  const items = markItems(m);
+  const off = items.filter((el) => !el.classList.contains('on'));
+  if (!off.length) items.forEach((el) => setLit(el, false));
+  else if (app.view.markOne) {
+    setLit(off[0], true, true);
+    off[0].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  } else off.forEach((el) => setLit(el, true));
+  syncButtons();
+}
+
+// 本文を押したとき：しるしのある言葉はその言葉だけ、会話文の行はその行だけ、ついたり消えたりする。
+// 「読む行だけ」のときは、言葉以外のところを押すと読む行が動く
+function onPageClick(e) {
+  if (!app.story) return;
+  const item = e.target.closest('.mk-i');
+  const ln = e.target.closest('.ln');
+  if (item && !item.classList.contains('ln')) { setLit(item, !item.classList.contains('on'), true); syncButtons(); return; }
+  if (ln && app.view.slit) { setCur(+ln.dataset.i); return; }
+  if (item) { setLit(item, !item.classList.contains('on'), true); syncButtons(); }
 }
 
 // 画面に収まるいちばん大きい文字にする
@@ -411,7 +454,7 @@ function openPrinter() {
   pr = {
     title: s.title,
     landscape: true, vertical: app.view.vertical, wakachi: app.view.wakachi,
-    fs: 'auto', marks: Object.assign({}, app.view.marks), dots: false, kuten: false,
+    fs: 'auto', marks: Object.fromEntries(MARKS.map((m) => [m, markItems(m).some((el) => el.classList.contains('on'))])), dots: false, kuten: false,
     name: true, date: true,
     seiriOn: false, seiri: {}, boxes: 5,
   };
@@ -558,9 +601,10 @@ function bind() {
   $('btnSmaller').onclick = () => { app.view.fs = Math.max(12, Math.round((app.view.fs || 32) / 1.1)); applyView(); };
   $('btnFit').onclick = fitText;
   $('btnSlit').onclick = () => { app.view.slit = !app.view.slit; syncButtons(); setCur(app.cur); };
-  document.querySelectorAll('.mk').forEach((b) => {
-    b.onclick = () => { const m = b.dataset.mark; app.view.marks[m] = !app.view.marks[m]; syncButtons(); applyView(); };
-  });
+  document.querySelectorAll('#toolbar .mk').forEach((b) => { b.onclick = () => pressMark(b.dataset.mark); });
+  $('btnMarkMode').onclick = () => { app.view.markOne = !app.view.markOne; savePref(); syncButtons(); };
+  $('btnMarkClear').onclick = () => { $('page').querySelectorAll('.mk-i.on').forEach((el) => setLit(el, false)); syncButtons(); };
+  $('page').addEventListener('click', onPageClick);
 
   document.addEventListener('keydown', (e) => {
     if (pr) { if (e.key === 'Escape' && !e.target.closest('input, textarea')) closePrinter(); return; }   // 印刷の画面のあいだは、本文のキーを使わない

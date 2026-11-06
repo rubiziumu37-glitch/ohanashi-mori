@@ -22,15 +22,14 @@
   --btn-edge: #C9B79C;
   --on: #2E6B3F;           /* 押されているボタン */
 
-  /* しるしの色（11/3 先生の指定：登場人物＝赤、会話文＝青、時間＝オレンジ、場所＝黒、オノマトペ＝紫、心情＝緑） */
-  --mk-hito: #E53935;      /* 登場人物：赤い字 */
-  --mk-kaiwa: #1565C0;     /* 会話文：青い字 */
-  --mk-kaiwa-bg: #E3F0FF;  /* 会話文：うすい青の地 */
-  --mk-toki: #EF6C00;      /* 時間：オレンジのわく */
-  --mk-basho: #111111;     /* 場所：黒のわく */
-  --mk-oto: #8E24AA;       /* オノマトペ：紫の字 */
-  --mk-kokoro: #2E7D32;    /* 心情：緑（ボタンの色） */
-  --mk-kokoro-bg: #C8EBC4; /* 心情：うすい緑のマーカー */
+  /* しるしの色（11/3 先生の指定：登場人物＝赤、会話文＝青、時間＝オレンジ、場所＝黒、オノマトペ＝紫、心情＝緑）
+     11/6 先生：字の色を変えるだけでは見にくい → 字は黒のまま、蛍光ペンでぬる形に。--mk-* はボタンの色、--hl-* は蛍光ペンの色 */
+  --mk-hito: #E53935;   --hl-hito: #FFC2C2;     /* 登場人物：赤 */
+  --mk-kaiwa: #1565C0;  --hl-kaiwa: #C9E2FF;    /* 会話文：青（行ごとぬる） */
+  --mk-toki: #EF6C00;   --hl-toki: #FFD49A;     /* 時間：オレンジ */
+  --mk-basho: #111111;  --hl-basho: #D9D9D9;    /* 場所：黒（うすい灰色にぬって、黒いわく） */
+  --mk-oto: #8E24AA;    --hl-oto: #E8C8F5;      /* オノマトペ：紫 */
+  --mk-kokoro: #2E7D32; --hl-kokoro: #BFE8BA;   /* 心情：緑 */
 
   --font-text: "Klee One", "BIZ UDPMincho", serif;
   --font-ui: "BIZ UDPGothic", "Hiragino Maru Gothic ProN", "Noto Sans JP", sans-serif;
@@ -113,16 +112,16 @@ body { font-family: var(--font-ui); color: var(--ink); background: var(--cream);
 /* ---------- 本文の画面 ---------- */
 #reader { background: var(--paper); }
 .page {
-  position: absolute; left: 0; right: 0; top: 0; bottom: var(--tb-h, 0px);
+  position: absolute; left: var(--tb-w, 0px); right: 0; top: 0; bottom: 0;
   font-family: var(--font-text); font-weight: 600; color: #222;
-  font-size: var(--fs, 32px); line-height: 1.75; letter-spacing: .05em;
-  padding: 1.2em 1.4em; overflow: auto;
+  font-size: var(--fs, 32px); line-height: 1.55; letter-spacing: .04em;
+  padding: .6em .9em; overflow: auto;
 }
 .page.v { writing-mode: vertical-rl; }
-.page .ttl { font-size: 1.25em; margin: 0 0 0 .9em; }   /* 縦書きでは左があと */
+.page .ttl { font-size: 1.1em; margin: 0 0 0 .6em; }   /* 縦書きでは左があと */
 .page.h .ttl { margin: 0 0 .5em 0; }
 .page .scene { display: block; }
-.page.v .scene + .scene { margin-right: .9em; }
+.page.v .scene + .scene { margin-right: .6em; }
 .page.h .scene + .scene { margin-top: .6em; }
 .page .ln { display: block; white-space: nowrap; border-radius: .2em; transition: opacity .2s, background .2s; cursor: pointer; }
 .page.h .ln { white-space: normal; }
@@ -132,13 +131,18 @@ body { font-family: var(--font-ui); color: var(--ink); background: var(--cream);
 /* 段落（場面）のはじめの地の文は、1文字さげる。会話文（「）と詩は、さげない */
 .page .scene > .ln.ji:first-child { text-indent: 1em; }
 
-/* しるし */
-.page.mk-kaiwa .ln.kaiwa { color: var(--mk-kaiwa); background: var(--mk-kaiwa-bg); }
-.page.mk-hito .m-hito { color: var(--mk-hito); }
-.page.mk-toki .m-toki { outline: .08em solid var(--mk-toki); outline-offset: .04em; border-radius: .15em; color: var(--mk-toki); }
-.page.mk-basho .m-basho { outline: .08em solid var(--mk-basho); outline-offset: .04em; border-radius: .15em; }
-.page.mk-oto .m-oto { color: var(--mk-oto); }
-.page.mk-kokoro .m-kokoro { background: var(--mk-kokoro-bg); border-radius: .15em; box-shadow: 0 0 0 .06em var(--mk-kokoro-bg); }   /* うすい緑のマーカー */
+/* しるし：蛍光ペンでぬる形。本文の画面は1つずつ（.on）、印刷の用紙は種類ごと（.mk-*） */
+.page .mk-i { border-radius: .18em; transition: background .25s, box-shadow .25s; }
+.page .m-hito.on,   .page.mk-hito .m-hito     { background: var(--hl-hito);   box-shadow: 0 0 0 .07em var(--hl-hito); }
+.page .ln.kaiwa.on, .page.mk-kaiwa .ln.kaiwa  { background: var(--hl-kaiwa); }
+.page .m-toki.on,   .page.mk-toki .m-toki     { background: var(--hl-toki);   box-shadow: 0 0 0 .07em var(--hl-toki); }
+.page .m-basho.on,  .page.mk-basho .m-basho   { background: var(--hl-basho);  box-shadow: 0 0 0 .07em var(--mk-basho); }
+.page .m-oto.on,    .page.mk-oto .m-oto       { background: var(--hl-oto);    box-shadow: 0 0 0 .07em var(--hl-oto); }
+.page .m-kokoro.on, .page.mk-kokoro .m-kokoro { background: var(--hl-kokoro); box-shadow: 0 0 0 .07em var(--hl-kokoro); }
+/* 1つずつつけたとき、いまついたものを少し強く見せる */
+.page .mk-i.pop { animation: mkPop .6s ease-out; }
+@keyframes mkPop { 0% { box-shadow: 0 0 0 .35em rgba(255,214,0,.0); } 30% { box-shadow: 0 0 0 .25em rgba(255,214,0,.85); } 100% { } }
+#reader .page .m-hito, #reader .page .m-toki, #reader .page .m-basho, #reader .page .m-oto, #reader .page .m-kokoro { cursor: pointer; }
 
 /* 読む行だけ */
 .page.slit .ln { opacity: .14; }
@@ -184,10 +188,10 @@ body { font-family: var(--font-ui); color: var(--ink); background: var(--cream);
 
 /* 範読：いま読んでいる行に色がつく */
 .page.reading .ln.cur { background: #FFF1A8; box-shadow: 0 0 0 .1em #FFF1A8; }
-.page.reading.mk-kaiwa .ln.kaiwa.cur { background: #FFE27A; box-shadow: 0 0 0 .1em #FFE27A; }
+.page.reading .ln.kaiwa.on.cur { background: #FFE27A; box-shadow: 0 0 0 .1em #FFE27A; }
 .btn.play[aria-pressed="true"] { background: #C62828; color: #fff; border-color: #8E1B1B; box-shadow: 0 4px 0 #8E1B1B; }
 
-/* しるしのボタン：左の帯が色見本。押すと、その色のボタンになる */
+/* しるしのボタン：左の帯が色見本。どれか1つでもついていると、その色のボタンになる。数は「ついた数／ぜんぶ」 */
 .mk.hito { --mc: var(--mk-hito); }
 .mk.kaiwa { --mc: var(--mk-kaiwa); }
 .mk.toki { --mc: var(--mk-toki); }
@@ -195,19 +199,25 @@ body { font-family: var(--font-ui); color: var(--ink); background: var(--cream);
 .mk.oto { --mc: var(--mk-oto); }
 .mk.kokoro { --mc: var(--mk-kokoro); }
 .mk { border-left: 10px solid var(--mc); }
-.btn.tog.mk[aria-pressed="true"] { background: var(--mc); border-color: var(--mc); box-shadow: 0 4px 0 rgba(0,0,0,.35); }
+.btn.mk[aria-pressed="true"] { background: var(--mc); color: #fff; border-color: var(--mc); box-shadow: 0 4px 0 rgba(0,0,0,.35); }
+.mk .cnt { display: block; font-size: 12px; font-weight: 400; margin-top: 3px; opacity: .85; }
 
-/* 下のボタンの帯 */
+/* 左はしの操作パネル（本文の高さを広くとるため） */
 .toolbar {
-  position: absolute; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(#F3E6CF, #E6D2AE); border-top: 4px solid var(--wood);
-  padding: 8px 14px 10px; display: flex; flex-direction: column; gap: 8px;
+  position: absolute; left: 0; top: 0; bottom: 0; width: 184px; overflow-y: auto;
+  background: linear-gradient(90deg, #F3E6CF, #E6D2AE); border-right: 4px solid var(--wood);
+  padding: 8px 8px 12px; display: flex; flex-direction: column; gap: 8px;
 }
-.tb-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.tb-row .info { flex: 1; font-size: 16px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.group { display: flex; gap: 6px; flex-wrap: wrap; padding-right: 14px; border-right: 2px dashed #C9B79C; }
-.group:last-child { border-right: none; }
-.show-ui { position: absolute; right: 12px; bottom: 12px; opacity: .55; }
+.toolbar .btn { font-size: 14px; min-height: 40px; padding: 6px 4px; }
+.toolbar .btn.small { font-size: 13px; min-height: 32px; }
+.tb-top { display: flex; gap: 6px; }
+.tb-top .back { flex: 1; }
+.toolbar .info { font-size: 13px; font-weight: 700; line-height: 1.35; }
+.group { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding-top: 8px; border-top: 2px dashed #C9B79C; }
+.group .gtitle { grid-column: 1 / -1; font-size: 13px; font-weight: 700; color: #6b5a47; }
+.group .wide { grid-column: 1 / -1; }
+#btnMarkMode[aria-pressed="true"] { background: #FFF1A8; color: var(--ink); border-color: #C9A227; box-shadow: 0 4px 0 #C9A227; }
+.show-ui { position: absolute; left: 10px; bottom: 10px; opacity: .55; }
 .show-ui:hover { opacity: 1; }
 
 @media (max-width: 700px) {
